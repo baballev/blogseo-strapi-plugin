@@ -70,7 +70,7 @@
   },
   "strapi": {
     "kind": "plugin",
-    "name": "blogseo-io",
+    "name": "blogseo",
     "displayName": "BlogSEO",
     "description": "Build high-quality backlinks and publish AI-generated SEO articles straight into your Strapi collections with BlogSEO."
   },

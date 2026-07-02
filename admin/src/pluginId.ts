@@ -1,1 +1,1 @@
-export const PLUGIN_ID = "blogseo-io";
+export const PLUGIN_ID = "blogseo";

@@ -12,7 +12,7 @@ import {
 } from "@strapi/design-system";
 import { Layouts, Page, useFetchClient, useNotification } from "@strapi/strapi/admin";
 
-const PLUGIN_BASE = "/blogseo-io";
+const PLUGIN_BASE = "/blogseo";
 
 interface StatusResponse {
   connected: boolean;

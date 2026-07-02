@@ -58,7 +58,7 @@ All options are optional and go in `config/plugins.ts`:
 
 ```ts
 export default {
-    "blogseo-io": {
+    "blogseo": {
         enabled: true,
         config: {
             // Override the BlogSEO API endpoint (self-hosted / staging setups)

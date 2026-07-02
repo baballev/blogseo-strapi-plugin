@@ -1,6 +1,6 @@
 import type { Core } from "@strapi/strapi";
 
-const PLUGIN_ID = "blogseo-io";
+const PLUGIN_ID = "blogseo";
 const STRAPI_TOKEN_NAME = "BlogSEO";
 const DEFAULT_BLOGSEO_API_URL = "https://app.blogseo.io";
 
