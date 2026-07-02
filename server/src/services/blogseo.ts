@@ -74,9 +74,8 @@ const service = ({ strapi }: { strapi: Core.Strapi }) => {
         type: "full-access",
         lifespan: null,
       });
-      let response: Awaited<ReturnType<typeof fetch>>;
-      try {
-        response = await fetch(`${blogSeoApiUrl()}/api/integrations/strapi-plugin/register`, {
+      const postRegister = () =>
+        fetch(`${blogSeoApiUrl()}/api/integrations/strapi-plugin/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
           body: JSON.stringify({
@@ -86,6 +85,11 @@ const service = ({ strapi }: { strapi: Core.Strapi }) => {
             strapiVersion: strapi.config.get<string>("info.strapi"),
           }),
         });
+      let response: Awaited<ReturnType<typeof fetch>>;
+      try {
+        // Retry once: a keep-alive socket closed by the server between requests
+        // makes the first fetch throw even though BlogSEO is reachable.
+        response = await postRegister().catch(postRegister);
       } catch {
         await apiTokens().revoke(created.id).catch(() => null);
         throw new Error("Could not reach BlogSEO. Check this server's outbound network access.");
