@@ -2,6 +2,7 @@ import type { Core } from "@strapi/strapi";
 
 const PLUGIN_ID = "blogseo";
 const STRAPI_TOKEN_NAME = "BlogSEO";
+const PENDING_TOKEN_NAME = "BlogSEO (connecting)";
 const DEFAULT_BLOGSEO_API_URL = "https://app.blogseo.io";
 
 interface BlogSeoStore {
@@ -21,6 +22,7 @@ interface ApiTokenService {
   }): Promise<{ id: number; accessKey: string }>;
   revoke(id: number): Promise<unknown>;
   getByName(name: string): Promise<{ id: number } | null>;
+  update(id: number, attributes: { name?: string }): Promise<unknown>;
 }
 
 interface RegisterResponse {
@@ -100,12 +102,13 @@ const service = ({ strapi }: { strapi: Core.Strapi }) => {
       pluralApiId: string;
       serverUrl: string;
     }) {
+      // The previous working token is only revoked AFTER registration succeeds, so a
+      // failed reconnect leaves the existing connection functional.
       const previous = await getState();
-      if (previous.strapiTokenId) await apiTokens().revoke(previous.strapiTokenId).catch(() => null);
-      const leftover = await apiTokens().getByName(STRAPI_TOKEN_NAME);
-      if (leftover) await apiTokens().revoke(leftover.id).catch(() => null);
+      const pendingLeftover = await apiTokens().getByName(PENDING_TOKEN_NAME);
+      if (pendingLeftover) await apiTokens().revoke(pendingLeftover.id).catch(() => null);
       const created = await apiTokens().create({
-        name: STRAPI_TOKEN_NAME,
+        name: PENDING_TOKEN_NAME,
         description: "Token used by BlogSEO to publish articles into this Strapi instance.",
         type: "full-access",
         lifespan: null,
@@ -135,6 +138,11 @@ const service = ({ strapi }: { strapi: Core.Strapi }) => {
         await apiTokens().revoke(created.id).catch(() => null);
         throw new Error(json.error ?? "BlogSEO rejected the connection. Double-check your connection key.");
       }
+      if (previous.strapiTokenId) await apiTokens().revoke(previous.strapiTokenId).catch(() => null);
+      const supersededToken = await apiTokens().getByName(STRAPI_TOKEN_NAME).catch(() => null);
+      if (supersededToken && supersededToken.id !== created.id)
+        await apiTokens().revoke(supersededToken.id).catch(() => null);
+      await apiTokens().update(created.id, { name: STRAPI_TOKEN_NAME }).catch(() => null);
       const nextState: BlogSeoStore = {
         connected: true,
         apiKey,
