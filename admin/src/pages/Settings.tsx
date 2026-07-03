@@ -125,7 +125,10 @@ const Settings = () => {
           ) : (
             <Flex direction="column" alignItems="stretch" gap={4}>
               <Typography variant="delta">Connect your BlogSEO account</Typography>
-              <Field.Root name="apiKey">
+              <Field.Root
+                name="apiKey"
+                hint="Generate this in your BlogSEO dashboard → Integrations → Strapi → “Connect with the Strapi plugin”."
+              >
                 <Field.Label>BlogSEO connection key</Field.Label>
                 <Field.Input
                   type="password"
@@ -133,12 +136,12 @@ const Settings = () => {
                   onChange={(event: ChangeEvent<HTMLInputElement>) => setApiKey(event.target.value)}
                   placeholder="blogseo_sp_..."
                 />
-                <Field.Hint>
-                  Generate this in your BlogSEO dashboard → Integrations → Strapi → “Connect with the
-                  Strapi plugin”.
-                </Field.Hint>
+                <Field.Hint />
               </Field.Root>
-              <Field.Root name="contentType">
+              <Field.Root
+                name="contentType"
+                hint="New articles from BlogSEO are created as entries here."
+              >
                 <Field.Label>Collection to publish into</Field.Label>
                 <SingleSelect
                   value={pluralApiId}
@@ -151,7 +154,7 @@ const Settings = () => {
                     </SingleSelectOption>
                   ))}
                 </SingleSelect>
-                <Field.Hint>New articles from BlogSEO are created as entries here.</Field.Hint>
+                <Field.Hint />
               </Field.Root>
               <Box>
                 <Button onClick={handleConnect} loading={isSubmitting} disabled={!apiKey || !pluralApiId}>
