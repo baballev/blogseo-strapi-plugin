@@ -71,6 +71,42 @@ const service = ({ strapi }: { strapi: Core.Strapi }) => {
         "strapi_stage",
         "strapi_assignee",
       ]);
+      const MAX_COMPONENT_DEPTH = 3;
+      type RawAttribute = {
+        type?: string;
+        private?: boolean;
+        repeatable?: boolean;
+        component?: string;
+      } & Record<string, unknown>;
+      // BlogSEO consumes components as { repeatable, attributes } (the shape its entry
+      // sampler infers), not as Strapi's raw component UID reference.
+      const expandAttribute = (attribute: RawAttribute, depth: number, visited: Set<string>): Record<string, unknown> => {
+        if (attribute.type !== "component" || typeof attribute.component !== "string") return attribute;
+        const componentUid = attribute.component;
+        const componentSchema = strapi.components[componentUid as keyof typeof strapi.components];
+        const canExpand = componentSchema && depth < MAX_COMPONENT_DEPTH && !visited.has(componentUid);
+        const childAttributes = canExpand
+          ? expandAttributes(componentSchema.attributes ?? {}, depth + 1, new Set(visited).add(componentUid))
+          : {};
+        return {
+          type: "component",
+          required: attribute.required,
+          component: { repeatable: attribute.repeatable ?? false, attributes: childAttributes },
+        };
+      };
+      const expandAttributes = (
+        attributes: Record<string, unknown>,
+        depth: number,
+        visited: Set<string>
+      ): Record<string, unknown> =>
+        Object.fromEntries(
+          Object.entries(attributes)
+            .filter(
+              ([name, attribute]) =>
+                !systemAttributeNames.has(name) && !(attribute as RawAttribute).private
+            )
+            .map(([name, attribute]) => [name, expandAttribute(attribute as RawAttribute, depth, visited)])
+        );
       return Object.entries(strapi.contentTypes)
         .filter(([uid, schema]) => uid.startsWith("api::") && schema.kind === "collectionType")
         .map(([uid, schema]) => ({
@@ -83,13 +119,7 @@ const service = ({ strapi }: { strapi: Core.Strapi }) => {
             kind: schema.kind,
             draftAndPublish: schema.options?.draftAndPublish ?? false,
             pluginOptions: schema.pluginOptions ?? {},
-            attributes: Object.fromEntries(
-              Object.entries(schema.attributes ?? {}).filter(
-                ([name, attribute]) =>
-                  !systemAttributeNames.has(name) &&
-                  !(attribute as { private?: boolean }).private
-              )
-            ),
+            attributes: expandAttributes(schema.attributes ?? {}, 0, new Set<string>()),
           },
         }));
     },
