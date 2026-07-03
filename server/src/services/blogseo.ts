@@ -56,6 +56,19 @@ const service = ({ strapi }: { strapi: Core.Strapi }) => {
         }));
     },
     listContentTypeSchemas() {
+      const systemAttributeNames = new Set([
+        "id",
+        "documentId",
+        "createdAt",
+        "updatedAt",
+        "publishedAt",
+        "createdBy",
+        "updatedBy",
+        "locale",
+        "localizations",
+        "strapi_stage",
+        "strapi_assignee",
+      ]);
       return Object.entries(strapi.contentTypes)
         .filter(([uid, schema]) => uid.startsWith("api::") && schema.kind === "collectionType")
         .map(([uid, schema]) => ({
@@ -68,7 +81,13 @@ const service = ({ strapi }: { strapi: Core.Strapi }) => {
             kind: schema.kind,
             draftAndPublish: schema.options?.draftAndPublish ?? false,
             pluginOptions: schema.pluginOptions ?? {},
-            attributes: schema.attributes ?? {},
+            attributes: Object.fromEntries(
+              Object.entries(schema.attributes ?? {}).filter(
+                ([name, attribute]) =>
+                  !systemAttributeNames.has(name) &&
+                  !(attribute as { private?: boolean }).private
+              )
+            ),
           },
         }));
     },
