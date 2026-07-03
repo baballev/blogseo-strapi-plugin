@@ -19,7 +19,7 @@ The plugin is free and open source. Publishing requires a [BlogSEO](https://www.
 
 - Adds a **BlogSEO** page under **Settings** in your Strapi admin panel.
 - Lets you connect with a single **connection key** pasted from your BlogSEO dashboard.
-- Automatically creates a **scoped Strapi API token** (find/create/update on your chosen collection + media upload) — you never have to create or handle one manually.
+- Automatically creates the **Strapi API token** BlogSEO publishes with — you never have to create or handle one manually, and disconnecting revokes it.
 - Detects your **content types and locales** and registers everything with BlogSEO in one click.
 - Shows the **connection status** and lets you disconnect (revoking the token) at any time.
 
