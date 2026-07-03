@@ -55,6 +55,23 @@ const service = ({ strapi }: { strapi: Core.Strapi }) => {
           pluralApiId: schema.info?.pluralName ?? "",
         }));
     },
+    listContentTypeSchemas() {
+      return Object.entries(strapi.contentTypes)
+        .filter(([uid, schema]) => uid.startsWith("api::") && schema.kind === "collectionType")
+        .map(([uid, schema]) => ({
+          uid,
+          apiID: schema.info?.singularName ?? uid.split(".").pop() ?? uid,
+          schema: {
+            displayName: schema.info?.displayName ?? schema.info?.singularName ?? uid,
+            singularName: schema.info?.singularName ?? "",
+            pluralName: schema.info?.pluralName ?? "",
+            kind: schema.kind,
+            draftAndPublish: schema.options?.draftAndPublish ?? false,
+            pluginOptions: schema.pluginOptions ?? {},
+            attributes: schema.attributes ?? {},
+          },
+        }));
+    },
     async connect({
       apiKey,
       pluralApiId,

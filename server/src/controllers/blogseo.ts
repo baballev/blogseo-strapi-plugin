@@ -9,6 +9,9 @@ const controller = ({ strapi }: { strapi: Core.Strapi }) => ({
   contentTypes(ctx) {
     ctx.body = { contentTypes: getBlogSeoService(strapi).listCollectionContentTypes() };
   },
+  schema(ctx) {
+    ctx.body = { contentTypes: getBlogSeoService(strapi).listContentTypeSchemas() };
+  },
   async connect(ctx) {
     const { apiKey, pluralApiId } = (ctx.request.body ?? {}) as {
       apiKey?: string;
